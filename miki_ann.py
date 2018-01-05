@@ -39,7 +39,7 @@ X_test = sc.transform(X_test)
 
 #Make ANN!
 #Import Keras libraries and packages
-
+#we can put these imports to the beginning
 import keras
 from keras.models import Sequential #required to initialize our NN
 from keras.layers import Dense #required to build the layers of our ANN
@@ -84,4 +84,21 @@ new_prediction = (new_prediction>0.5)
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
 cm = confusion_matrix(y_test, y_pred)
+#Evaluating,improving,and tuning ANN
 
+#Evaluating ANN
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import cross_val_score
+from keras.models import Sequential #required to initialize our NN
+from keras.layers import Dense #required to build the layers of our ANN
+def build_classifier():
+    classifier = Sequential()#dont need to input anyargument google define the layers step by step.Google start with the input layer and the first hidden layer and then will adds more hidden layers and then finally will add the output layer   
+    classifier.add(Dense(activation="relu", input_dim=11, units=6, kernel_initializer="uniform"))#add what really does is add hidden layers.output_dim -->avg((numbers of independent variable+number of output layers))-->avg(11+1)=6=(11+1)/2=6(hidden layers)
+    classifier.add(Dense(activation="relu", units=6, kernel_initializer="uniform"))#removed input_dim cuz we know what to expect cuz the first hidden layer was created
+    classifier.add(Dense(activation="sigmoid", units=1, kernel_initializer="uniform"))#output_dim=1 cuz we only have one node at output layer...binary outcome.(mert a független változó az categorical változó bináris outcome-mal).activation='sigmoid' mert a lehetőséget vizsgáljuk
+    classifier.compile(optimizer = 'adam',loss = 'binary_crossentropy',metrics = ['accuracy'])
+    return classifier
+classifier = KerasClassifier(build_fn = build_classifier, batch_size = 10, epochs=100)
+accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10, n_jobs = 1)
+mean = accuracies.mean()
+variance = accuracies.std()
