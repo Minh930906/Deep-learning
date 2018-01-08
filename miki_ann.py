@@ -107,6 +107,33 @@ classifier = KerasClassifier(build_fn = build_classifier, batch_size = 10, epoch
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10, n_jobs = 1)
 mean = accuracies.mean()
 variance = accuracies.std()
-#Improving Ann
+#Improving ANN
 #overfitting-->much higher accuracy on trainingset than the testset,another way to detect overfitting when u observe a high variance when applying k-fold cross validation
 #Dropout Regularization to reduce overfitting if needed
+
+#Tuning ANN-->parameter tuning to get higher accuracy.2 types parameter:weights,hyperparameter.Hyperparameter are the numbers of epoch,the batch size,the optimizer,or the number of neurons in the layers
+#parameter tuning is all about it consist finding the best values of these hyperparameters and we gonna do this with this technique which calls grid search that basicly will test several combination of these values and will eventually return the best selection the best choice that leads to the best accuracy with k-fold cross validation
+
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import GridSearchCV
+from keras.models import Sequential #required to initialize our NN
+from keras.layers import Dense #required to build the layers of our ANN
+#k-fold cross validation
+def build_classifier(optimizer):
+    classifier = Sequential()#dont need to input anyargument google define the layers step by step.Google start with the input layer and the first hidden layer and then will adds more hidden layers and then finally will add the output layer   
+    classifier.add(Dense(activation="relu", input_dim=11, units=6, kernel_initializer="uniform"))#add what really does is add hidden layers.output_dim -->avg((numbers of independent variable+number of output layers))-->avg(11+1)=6=(11+1)/2=6(hidden layers)
+    classifier.add(Dense(activation="relu", units=6, kernel_initializer="uniform"))#removed input_dim cuz we know what to expect cuz the first hidden layer was created
+    classifier.add(Dense(activation="sigmoid", units=1, kernel_initializer="uniform"))#output_dim=1 cuz we only have one node at output layer...binary outcome.(mert a független változó az categorical változó bináris outcome-mal).activation='sigmoid' mert a lehetőséget vizsgáljuk
+    classifier.compile(optimizer = optimizer,loss = 'binary_crossentropy',metrics = ['accuracy'])
+    return classifier
+classifier = KerasClassifier(build_fn = build_classifier)
+parameters = {'batch_size' : [25,32],
+              'nb_epoch' : [100,500],
+              'optimizer' : ['adam','rmsprop']}
+grid_search = GridSearchCV(estimator = classifier,
+                           param_grid = parameters,
+                           scoring = 'accuracy',
+                           cv = 10)
+grid_search = grid_search.fit(X_train,y_train)
+best_parameters = grid_search.best_params_ 
+best_accuracy = grid_search.best_score_
